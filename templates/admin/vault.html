@@ -1,0 +1,223 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1 text-dark">Software License Vault</h2>
+        <p class="text-muted mb-0">Manage perpetual & subscription licenses securely.</p>
+    </div>
+    <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addLicenseModal">
+        <i class="fas fa-plus-circle me-2"></i> Add New License
+    </button>
+</div>
+
+<div class="row g-4">
+    {% for l in licenses %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card-custom h-100 p-0 border shadow-sm">
+            <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">{{ l.software_name }}</h6>
+                <span class="badge bg-primary">{{ l.license_type }}</span>
+            </div>
+            <div class="p-3">
+                <div class="mb-2 d-flex justify-content-between">
+                    <small class="text-secondary">Vendor:</small>
+                    <small class="fw-bold text-dark">{{ l.vendor_name or '-' }}</small>
+                </div>
+                <div class="mb-2 d-flex justify-content-between">
+                    <small class="text-secondary">Renewal:</small>
+                    <small
+                        class="fw-bold {% if l.renewal_date and l.renewal_date < now %}text-danger{% else %}text-success{% endif %}">
+                        {{ l.renewal_date | date }}
+                    </small>
+                </div>
+                <div class="mb-2 d-flex justify-content-between">
+                    <small class="text-secondary">Users:</small>
+                    <small class="fw-bold">{{ l.user_strength or '0' }}</small>
+                </div>
+
+                <hr class="my-2">
+
+                <div class="mb-2">
+                    <small class="text-secondary d-block">Login:</small>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <code class="text-dark">{{ l.login_username or 'N/A' }}</code>
+                        <small class="text-muted">Username</small>
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 bg-light border-top">
+                <button class="btn btn-outline-dark w-100 btn-sm fw-bold"
+                    onclick="openCaptchaModal('{{ l.id }}', '{{ l.software_name }}')">
+                    <i class="fas fa-key me-2"></i> Reveal Key & Password
+                </button>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No licenses stored in the vault.</p>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="modal fade" id="addLicenseModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form action="/admin/vault/add" method="POST">
+            <div class="modal-content">
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title fw-bold">Register Software License</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Software Name</label>
+                            <input type="text" name="software_name" class="form-control" required
+                                placeholder="e.g. Adobe Creative Cloud">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">License Type</label>
+                            <select name="license_type" class="form-select">
+                                <option>Perpetual (Lifetime)</option>
+                                <option>Subscription (Yearly)</option>
+                                <option>Subscription (Monthly)</option>
+                                <option>Pirated / Unofficial</option>
+                                <option>Open Source</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Vendor Name</label>
+                            <input type="text" name="vendor_name" class="form-control" placeholder="e.g. Adobe Systems">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Cost</label>
+                            <input type="text" name="cost" class="form-control" placeholder="e.g. $500 / Year">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Purchase Date</label>
+                            <input type="date" name="purchase_date" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Renewal / Expiry Date</label>
+                            <input type="date" name="renewal_date" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">No. of User Strength</label>
+                            <input type="number" name="user_strength" class="form-control" placeholder="1">
+                        </div>
+
+                        <div class="col-12">
+                            <hr>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Login Username/Email</label>
+                            <input type="text" name="login_username" class="form-control">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Login Password</label>
+                            <input type="text" name="login_password" class="form-control"
+                                placeholder="Will be encrypted">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-danger">Product Key / License Code</label>
+                            <input type="text" name="product_key" class="form-control border-danger" required
+                                placeholder="XXXX-XXXX-XXXX-XXXX">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-primary fw-bold">Securely Save</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="captchaModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-shield-alt me-2"></i>Security Verification</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center p-4">
+                <p class="mb-3">Solve the math problem to reveal the credentials for <b id="modalSoftwareName"></b>.</p>
+
+                <div class="mb-3 p-2 border bg-white rounded d-inline-block">
+                    <img id="captchaImage" src="" alt="Captcha" style="height: 60px;">
+                </div>
+                <button class="btn btn-link btn-sm text-decoration-none" onclick="loadCaptcha()">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+
+                <input type="hidden" id="licenseIdInput">
+                <input type="hidden" id="captchaToken">
+
+                <input type="text" id="captchaInput" class="form-control text-center fs-5 mt-3"
+                    placeholder="Enter Result" required autocomplete="off">
+                <div id="captchaError" class="text-danger small mt-2 fw-bold"></div>
+
+                <div id="revealedData" class="mt-4 p-3 bg-light border rounded text-start d-none">
+                    <div class="mb-2">
+                        <small class="text-muted d-block">PRODUCT KEY</small>
+                        <code class="fs-5 text-dark fw-bold" id="resKey"></code>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">PASSWORD</small>
+                        <code class="fs-5 text-dark fw-bold" id="resPass"></code>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger fw-bold" onclick="verifyAndReveal()">Verify &
+                    Reveal</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openCaptchaModal(id, name) {
+        document.getElementById('licenseIdInput').value = id;
+        document.getElementById('modalSoftwareName').textContent = name;
+        document.getElementById('revealedData').classList.add('d-none');
+        document.getElementById('captchaInput').value = '';
+        document.getElementById('captchaError').textContent = '';
+        loadCaptcha();
+        new bootstrap.Modal(document.getElementById('captchaModal')).show();
+    }
+
+    async function loadCaptcha() {
+        const response = await fetch('/api/captcha');
+        document.getElementById('captchaToken').value = response.headers.get('X-Captcha-Token');
+        const blob = await response.blob();
+        document.getElementById('captchaImage').src = URL.createObjectURL(blob);
+    }
+
+    async function verifyAndReveal() {
+        const id = document.getElementById('licenseIdInput').value;
+        const input = document.getElementById('captchaInput').value;
+        const token = document.getElementById('captchaToken').value;
+
+        const formData = new FormData();
+        formData.append('license_id', id);
+        formData.append('captcha_input', input);
+        formData.append('captcha_token', token);
+
+        const res = await fetch('/admin/vault/reveal', { method: 'POST', body: formData });
+        const data = await res.json();
+
+        if (data.error) {
+            document.getElementById('captchaError').textContent = data.error;
+            loadCaptcha(); // Reset on fail
+        } else {
+            document.getElementById('captchaError').textContent = "";
+            document.getElementById('resKey').textContent = data.product_key;
+            document.getElementById('resPass').textContent = data.password;
+            document.getElementById('revealedData').classList.remove('d-none');
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Consumables Inventory</h2>
+    <button class="btn btn-info text-white fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addConsModal">
+        <i class="fas fa-plus me-2"></i> Add Stock
+    </button>
+</div>
+
+<div class="card card-custom p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>Total Stock</th>
+                    <th>Remaining</th>
+                    <th>Status</th>
+                    <th>Last Restocked</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td class="fw-bold">{{ item.item_name }}</td>
+                    <td><span class="badge bg-light text-dark border">{{ item.category }}</span></td>
+                    <td>{{ item.total_quantity }}</td>
+                    <td class="fw-bold text-primary fs-5">{{ item.remaining_quantity }}</td>
+                    <td>
+                        {% if item.remaining_quantity <= item.threshold_limit %} <span class="badge bg-danger">Low
+                            Stock</span>
+                            {% else %}
+                            <span class="badge bg-success">Adequate</span>
+                            {% endif %}
+                    </td>
+                    <td class="text-muted small">{{ item.last_restocked | date }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">No consumables added.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addConsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form action="/admin/consumables/add" method="POST">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title fw-bold">Add Consumable Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Item Name</label>
+                        <input type="text" name="item_name" class="form-control" placeholder="e.g. HP 12A Toner"
+                            required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Category</label>
+                        <select name="category" class="form-select">
+                            <option>Printer Ink</option>
+                            <option>Toner</option>
+                            <option>Cartridge</option>
+                            <option>Battery (AA)</option>
+                            <option>Battery (AAA)</option>
+                            <option>Paper Ream</option>
+                            <option>Cleaning Kit</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Initial Quantity</label>
+                            <input type="number" name="total_quantity" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Low Stock Alert Limit</label>
+                            <input type="number" name="threshold_limit" class="form-control" value="5">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-info text-white fw-bold">Add to Inventory</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,512 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">Asset Inventory</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+        <i class="fas fa-plus me-2"></i> Add New Asset
+    </button>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-left-primary">
+            <h3 class="fw-bold text-primary">{{ assets|length }}</h3>
+            <small class="text-muted">Total Assets</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card card-custom p-3 text-center border-left-success">
+            <h3 class="fw-bold text-success">{{ assets | selectattr("status", "equalto", "In Stock") | list | length }}
+            </h3>
+            <small class="text-muted">In Stock</small>
+        </div>
+    </div>
+</div>
+
+<div class="card card-custom p-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="bg-light">
+                <tr>
+                    <th>Asset ID</th>
+                    <th>Name / Model</th>
+                    <th>Category</th>
+                    <th>Assigned To</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr>
+                    <td class="fw-bold text-primary">{{ asset.asset_id }}</td>
+                    <td>
+                        <div class="fw-bold">{{ asset.asset_name }}</div>
+                        <small class="text-muted">{{ asset.brand }} {{ asset.model }}</small>
+                    </td>
+                    <td><span class="badge bg-light text-dark border">{{ asset.category }}</span></td>
+                    <td>
+                        {% if asset.category in ['Printer', 'Xerox', 'Plotter', 'Access Point', 'AC', 'TV', 'Projector
+                        Machine'] %}
+                        <span class="badge bg-info text-dark">Shared Resource</span>
+                        {% elif asset.assignee %}
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary rounded-circle text-white small d-flex align-items-center justify-content-center me-2"
+                                style="width:24px;height:24px;">{{ asset.assignee.full_name[0] | upper }}</div>
+                            {{ asset.assignee.full_name }}
+                        </div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if asset.status == 'In Stock' else 'bg-secondary' }}">
+                            {{ asset.status }}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addAssetModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-xl">
+        <form action="/admin/assets/create" method="POST">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold">Register New Asset</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+
+                    <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">SECTION A: GENERAL INFO</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Asset Category</label>
+                            <select name="category" id="categorySelect" class="form-select" required
+                                onchange="renderSpecs()">
+                                <option value="">-- Select --</option>
+                                <option>Laptop</option>
+                                <option>Desktop CPU</option>
+                                <option>Monitor</option>
+                                <option>Keyboard</option>
+                                <option>Mouse</option>
+                                <option>Printer</option>
+                                <option>Xerox</option>
+                                <option>Scanner</option>
+                                <option>Router</option>
+                                <option>Switch</option>
+                                <option>Firewall</option>
+                                <option>CCTV</option>
+                                <option>Server</option>
+                                <option>NAS</option>
+                                <option>Biometric</option>
+                                <option>IP Phone</option>
+                                <option>Pendrive</option>
+                                <option>HDD</option>
+                                <option>TV</option>
+                                <option>UPS</option>
+                                <option>Online UPS</option>
+                                <option>Projector Machine</option>
+                                <option>Projector Screen</option>
+                                <option>Access Point</option>
+                                <option>DGPS</option>
+                                <option>Flow Meter</option>
+                                <option>Drone</option>
+                                <option>Total Station</option>
+                                <option>AC</option>
+                                <option>EPBX</option>
+                                <option>Amplifier</option>
+                                <option>Microphone</option>
+                                <option>Plotter</option>
+                                <option>Laptop Bag</option>
+                                <option>Mobile Phone</option>
+                                <option>Tablet</option>
+                                <option>Server Rack</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Asset Name</label>
+                            <input type="text" name="asset_name" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Brand</label>
+                            <input type="text" name="brand" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Model</label>
+                            <input type="text" name="model" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Serial Number</label>
+                            <input type="text" name="serial_number" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Asset Tag / Barcode</label>
+                            <input type="text" name="asset_tag" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Location (Floor/Room)</label>
+                            <input type="text" name="location" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Quantity</label>
+                            <input type="number" name="quantity" class="form-control" value="1">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Status</label>
+                            <select name="status" class="form-select">
+                                <option>In Stock</option>
+                                <option>In Use</option>
+                                <option>Under Repair</option>
+                                <option>Scrap</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Assigned To</label>
+                            <select name="assigned_to" class="form-select">
+                                <option value="">-- Unassigned --</option>
+                                {% for u in users %}
+                                <option value="{{ u.id }}">{{ u.full_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="text-success fw-bold border-bottom pb-2 mb-3">SECTION B: VENDOR & FINANCIALS</h6>
+                    <div class="row g-3 mb-4 bg-light p-3 rounded">
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Vendor Name</label>
+                            <input type="text" name="vendor_name" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Invoice Number</label>
+                            <input type="text" name="invoice_number" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Invoice Date</label>
+                            <input type="date" name="invoice_date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Purchase Date</label>
+                            <input type="date" name="purchase_date" class="form-control">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Warranty Expiry</label>
+                            <input type="date" name="warranty_expiry" class="form-control">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Base Amount (₹)</label>
+                            <input type="number" step="0.01" id="baseAmt" name="base_amount" class="form-control"
+                                oninput="calcTotal()" placeholder="0.00">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">GST Amount (₹)</label>
+                            <input type="number" step="0.01" id="gstAmt" name="gst_amount" class="form-control"
+                                oninput="calcTotal()" placeholder="0.00">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Total Amount (₹)</label>
+                            <input type="text" id="totalAmt" name="total_amount" class="form-control fw-bold bg-white"
+                                readonly>
+                        </div>
+                    </div>
+
+                    <div id="specsContainer" class="d-none">
+                        <h6 class="text-primary fw-bold border-bottom pb-2 mb-3">SECTION C: TECHNICAL SPECS</h6>
+                        <div id="dynamicFields" class="row g-3"></div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="submit" class="btn btn-primary px-4">Save Asset</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function calcTotal() {
+        let base = parseFloat(document.getElementById('baseAmt').value) || 0;
+        let gst = parseFloat(document.getElementById('gstAmt').value) || 0;
+        document.getElementById('totalAmt').value = (base + gst).toFixed(2);
+    }
+
+    // --- COMPLETE DYNAMIC FIELDS CONFIGURATION ---
+    const assetSchemas = {
+        // --- 1. COMPUTING DEVICES ---
+        'Laptop': [
+            { label: 'Processor', name: 'processor', placeholder: 'i5 12th Gen' },
+            { label: 'RAM Size (GB)', name: 'ram_size' },
+            { label: 'Storage Type', name: 'storage_type', type: 'select', options: ['SSD', 'HDD', 'NVMe'] },
+            { label: 'Storage Capacity', name: 'storage_capacity' },
+            { label: 'Host Name', name: 'host_name' },
+            { label: 'Operating System', name: 'os' },
+            { label: 'IP Address 1', name: 'ip_1' },
+            { label: 'IP Address 2', name: 'ip_2' },
+            { label: 'IP Address 3', name: 'ip_3' }
+        ],
+        'Desktop CPU': [
+            { label: 'Processor', name: 'processor' },
+            { label: 'RAM Size (GB)', name: 'ram_size' },
+            { label: 'Storage', name: 'storage_capacity' },
+            { label: 'Host Name', name: 'host_name' },
+            { label: 'Cabinet Type', name: 'cabinet' },
+            { label: 'Operating System', name: 'os' },
+            { label: 'IP Address 1', name: 'ip_1' },
+            { label: 'IP Address 2', name: 'ip_2' },
+            { label: 'IP Address 3', name: 'ip_3' }
+        ],
+        'Tablet': [
+            { label: 'Screen Size', name: 'screen_size' },
+            { label: 'Storage (GB)', name: 'storage' },
+            { label: 'RAM (GB)', name: 'ram' },
+            { label: 'IMEI / Serial', name: 'imei_serial' },
+            { label: 'OS Version', name: 'os_ver' }
+        ],
+        'Mobile Phone': [
+            { label: 'IMEI 1', name: 'imei1' },
+            { label: 'IMEI 2', name: 'imei2' },
+            { label: 'Storage (GB)', name: 'storage' },
+            { label: 'Color', name: 'color' }
+        ],
+
+        // --- 2. PERIPHERALS ---
+        'Monitor': [
+            { label: 'Screen Size', name: 'screen_size' },
+            { label: 'Resolution', name: 'resolution' },
+            { label: 'Panel Type', name: 'panel', type: 'select', options: ['IPS', 'VA', 'TN', 'OLED'] },
+            { label: 'Connectivity', name: 'ports', placeholder: 'HDMI, VGA, DP' }
+        ],
+        'Keyboard': [
+            { label: 'Type', name: 'kb_type', type: 'select', options: ['Wired', 'Wireless'] },
+            { label: 'Interface', name: 'interface', placeholder: 'USB / Bluetooth' }
+        ],
+        'Mouse': [
+            { label: 'Type', name: 'mouse_type', type: 'select', options: ['Wired', 'Wireless'] },
+            { label: 'DPI', name: 'dpi' }
+        ],
+        'Laptop Bag': [
+            { label: 'Size (Inch)', name: 'bag_size' },
+            { label: 'Type', name: 'bag_type', type: 'select', options: ['Backpack', 'Briefcase', 'Sleeve'] }
+        ],
+
+        // --- 3. IMAGING & PRINTING ---
+        'Printer': [
+            { label: 'Type', name: 'print_tech', type: 'select', options: ['Laser', 'Inkjet', 'Thermal'] },
+            { label: 'Color', name: 'color_support', type: 'select', options: ['Yes', 'No'] },
+            { label: 'Network IP', name: 'ip_address' },
+            { label: 'Cartridge Model', name: 'cartridge_model' }
+        ],
+        'Xerox': [
+            { label: 'Speed (CPM)', name: 'cpm' },
+            { label: 'Max Paper Size', name: 'paper_size', placeholder: 'A3 / A4' },
+            { label: 'IP Address', name: 'ip_address' },
+            { label: 'Reading Meter', name: 'initial_reading' }
+        ],
+        'Plotter': [
+            { label: 'Max Width', name: 'print_width', placeholder: 'e.g. 24 inch, 44 inch' },
+            { label: 'Ink Type', name: 'ink_type' },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+        'Scanner': [
+            { label: 'Type', name: 'scan_type', type: 'select', options: ['Flatbed', 'ADF', 'Handheld'] },
+            { label: 'Resolution (DPI)', name: 'dpi' }
+        ],
+        'Projector Machine': [
+            { label: 'Lumens', name: 'lumens' },
+            { label: 'Lamp Hours', name: 'lamp_hours' },
+            { label: 'Resolution', name: 'resolution' },
+            { label: 'Mount Type', name: 'mount', type: 'select', options: ['Ceiling', 'Tabletop'] }
+        ],
+        'Projector Screen': [
+            { label: 'Size (Ft)', name: 'screen_size_ft' },
+            { label: 'Type', name: 'screen_type', type: 'select', options: ['Motorized', 'Manual Pull-down', 'Tripod'] }
+        ],
+
+        // --- 4. NETWORKING & SECURITY ---
+        'Router': [
+            { label: 'WAN Ports', name: 'wan_ports' },
+            { label: 'LAN Ports', name: 'lan_ports' },
+            { label: 'WiFi Std', name: 'wifi_std', placeholder: 'WiFi 6 / AC' },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+        'Switch': [
+            { label: 'Port Count', name: 'ports', type: 'select', options: ['8', '16', '24', '48'] },
+            { label: 'Speed', name: 'speed', type: 'select', options: ['Gigabit', '10G', '100Mbps'] },
+            { label: 'Type', name: 'switch_type', type: 'select', options: ['Managed', 'Unmanaged'] },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+        'Access Point': [
+            { label: 'Range (Mtrs)', name: 'range' },
+            { label: 'Throughput', name: 'throughput' },
+            { label: 'IP Address', name: 'ip_address' },
+            { label: 'Mount Loc', name: 'mount_loc' }
+        ],
+        'Firewall': [
+            { label: 'Throughput', name: 'throughput' },
+            { label: 'License Expiry', name: 'license_exp', type: 'date' },
+            { label: 'IP Address', name: 'ip_address' },
+            { label: 'Firmware Ver', name: 'firmware' }
+        ],
+        'CCTV': [
+            { label: 'Type', name: 'cam_type', type: 'select', options: ['IP', 'Analog', 'PTZ'] },
+            { label: 'Resolution', name: 'resolution' },
+            { label: 'IP Address', name: 'ip_address' },
+            { label: 'Storage Loc', name: 'dvr_nvr_loc' }
+        ],
+
+        // --- 5. INFRASTRUCTURE & POWER ---
+        'Server': [
+            { label: 'Form Factor', name: 'form_factor', type: 'select', options: ['Rack', 'Tower', 'Blade'] },
+            { label: 'Processor', name: 'cpu' },
+            { label: 'RAM', name: 'ram' },
+            { label: 'RAID Config', name: 'raid' },
+            { label: 'Host Name', name: 'host_name' },
+            { label: 'IP Address 1', name: 'ip_1' },
+            { label: 'IP Address 2', name: 'ip_2' },
+            { label: 'OS', name: 'os' }
+        ],
+        'Server Rack': [
+            { label: 'Size (U)', name: 'rack_u', placeholder: '42U, 24U' },
+            { label: 'Dimensions', name: 'dims' },
+            { label: 'Key Number', name: 'key_no' }
+        ],
+        'UPS': [
+            { label: 'Capacity (VA)', name: 'capacity' },
+            { label: 'Battery Count', name: 'batt_count' },
+            { label: 'Battery AH', name: 'batt_ah' }
+        ],
+        'Online UPS': [
+            { label: 'Capacity (KVA)', name: 'capacity_kva' },
+            { label: 'Bank Voltage', name: 'dc_voltage' },
+            { label: 'Battery Count', name: 'batt_count' },
+            { label: 'Phase', name: 'phase', placeholder: '1:1 / 3:1 / 3:3' }
+        ],
+        'AC': [
+            { label: 'Tonnage', name: 'tonnage', placeholder: '1.5 Ton' },
+            { label: 'Type', name: 'ac_type', type: 'select', options: ['Split', 'Window', 'Cassette', 'Tower'] },
+            { label: 'Star Rating', name: 'star_rating' },
+            { label: 'Gas Type', name: 'gas_type' }
+        ],
+
+        // --- 6. SPECIALIZED EQUIPMENT ---
+        'Drone': [
+            { label: 'Flight Time (Min)', name: 'flight_time' },
+            { label: 'Range (Km)', name: 'range' },
+            { label: 'Camera Res', name: 'cam_res' },
+            { label: 'Battery Count', name: 'batt_qty' }
+        ],
+        'DGPS': [
+            { label: 'Accuracy', name: 'accuracy' },
+            { label: 'Channels', name: 'channels' },
+            { label: 'Controller Model', name: 'controller' }
+        ],
+        'Total Station': [
+            { label: 'Accuracy', name: 'accuracy' },
+            { label: 'Range (Reflector)', name: 'range_ref' },
+            { label: 'Range (Reflectorless)', name: 'range_less' }
+        ],
+        'Flow Meter': [
+            { label: 'Pipe Size', name: 'pipe_size' },
+            { label: 'Flow Range', name: 'flow_range' },
+            { label: 'Output Type', name: 'output', placeholder: '4-20mA / Pulse' }
+        ],
+        'Biometric': [
+            { label: 'User Capacity', name: 'user_cap' },
+            { label: 'Type', name: 'bio_type', type: 'select', options: ['Finger', 'Face', 'Card'] },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+        'EPBX': [
+            { label: 'Extensions', name: 'ext_count' },
+            { label: 'Lines (CO)', name: 'co_lines' },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+
+        // --- 7. AUDIO VISUAL ---
+        'TV': [
+            { label: 'Screen Size', name: 'size' },
+            { label: 'Type', name: 'tv_type', type: 'select', options: ['Smart', 'Non-Smart'] },
+            { label: 'Resolution', name: 'res' },
+            { label: 'Mount', name: 'mount', placeholder: 'Wall / Stand' }
+        ],
+        'Amplifier': [
+            { label: 'Power (Watts)', name: 'wattage' },
+            { label: 'Channels', name: 'channels' },
+            { label: 'Impedance', name: 'impedance' }
+        ],
+        'Microphone': [
+            { label: 'Type', name: 'mic_type', type: 'select', options: ['Wireless', 'Wired', 'Collar'] },
+            { label: 'Frequency', name: 'frequency' }
+        ],
+
+        // --- 8. STORAGE & OTHERS ---
+        'NAS': [
+            { label: 'Bays', name: 'bays' },
+            { label: 'Storage (TB)', name: 'storage_tb' },
+            { label: 'RAID', name: 'raid' },
+            { label: 'IP Address', name: 'ip_address' }
+        ],
+        'HDD': [
+            { label: 'Capacity', name: 'capacity' },
+            { label: 'Type', name: 'hdd_type', type: 'select', options: ['External', 'Internal'] }
+        ],
+        'Pendrive': [
+            { label: 'Capacity', name: 'capacity' },
+            { label: 'Interface', name: 'usb_type', placeholder: '2.0 / 3.0 / Type-C' }
+        ],
+        'IP Phone': [
+            { label: 'Extension No', name: 'ext_no' },
+            { label: 'Display', name: 'display', type: 'select', options: ['Yes', 'No'] },
+            { label: 'IP Address', name: 'ip_address' }
+        ]
+    };
+
+    function renderSpecs() {
+        const category = document.getElementById('categorySelect').value;
+        const container = document.getElementById('specsContainer');
+        const fieldsDiv = document.getElementById('dynamicFields');
+        fieldsDiv.innerHTML = '';
+
+        if (assetSchemas[category] && assetSchemas[category].length > 0) {
+            container.classList.remove('d-none');
+            assetSchemas[category].forEach(field => {
+                let inputHtml = '';
+
+                if (field.type === 'select') {
+                    let opts = field.options.map(o => `<option>${o}</option>`).join('');
+                    inputHtml = `<select name="${field.name}" class="form-select"><option value="">Select...</option>${opts}</select>`;
+                } else if (field.type === 'date') {
+                    inputHtml = `<input type="date" name="${field.name}" class="form-control">`;
+                } else {
+                    inputHtml = `<input type="text" name="${field.name}" class="form-control" placeholder="${field.placeholder || ''}">`;
+                }
+
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-md-3';
+                colDiv.innerHTML = `
+                    <label class="form-label small fw-bold text-secondary">${field.label}</label>
+                    ${inputHtml}
+                `;
+                fieldsDiv.appendChild(colDiv);
+            });
+        } else {
+            // Hide Section C if no specific schema exists but show the container to clear old fields
+            if (category && (!assetSchemas[category] || assetSchemas[category].length === 0)) {
+                container.classList.remove('d-none');
+                fieldsDiv.innerHTML = `<div class="col-12 text-muted small fst-italic">No specific technical fields defined for ${category}. You can add details in Remarks.</div>`;
+            } else {
+                container.classList.add('d-none');
+            }
+        }
+    }
+</script>
+{% endblock %}

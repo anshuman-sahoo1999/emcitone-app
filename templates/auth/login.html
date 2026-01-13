@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-center vh-100 bg-light" style="margin-left: 0;">
+    <div class="card card-custom p-5" style="width: 450px;">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-primary"><i class="fas fa-network-wired"></i> EMCITOne</h2>
+            <p class="text-muted">Secure IT Service Management</p>
+        </div>
+
+        {% if request.query_params.error %}
+        <div class="alert alert-danger d-flex align-items-center">
+            <i class="fas fa-exclamation-circle me-2"></i> {{ request.query_params.error }}
+        </div>
+        {% endif %}
+
+        <form action="/auth/login" method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Email Address</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                    <input type="email" name="email" class="form-control" placeholder="user@company.com" required>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label class="form-label fw-bold">Password</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                    <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Access Portal</button>
+        </form>
+        <div class="text-center mt-3">
+            <small class="text-muted">Contact IT Support if you forgot your credentials.</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

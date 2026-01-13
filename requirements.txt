@@ -12,3 +12,4 @@ passlib[bcrypt]
 python-jose
 psycopg2-binary
 captcha
+bcrypt==3.2.2

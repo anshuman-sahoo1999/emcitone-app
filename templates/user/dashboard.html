@@ -40,7 +40,7 @@
                                 {% elif ticket.status == 'Closed' %}<span class="badge bg-secondary">Closed</span>
                                 {% else %}<span class="badge bg-warning text-dark">{{ ticket.status }}</span>{% endif %}
                             </td>
-                            <td class="text-muted small">{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ ticket.created_at.strftime('%Y-%m-%d') }}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
                                     data-bs-target="#view-{{ ticket.id }}">

@@ -172,7 +172,7 @@
                     </div>
                     <div>
                         <small class="text-secondary fw-bold d-block">DATE</small>
-                        <span class="text-muted">{{ ticket.created_at[:10] }}</span>
+                        <span class="text-muted">{{ ticket.created_at.strftime('%Y-%m-%d') }}</span>
                     </div>
                 </div>
 
